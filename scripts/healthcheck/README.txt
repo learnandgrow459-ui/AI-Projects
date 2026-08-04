@@ -1,0 +1,1 @@
+This script checks health of Ubuntu VMs.
