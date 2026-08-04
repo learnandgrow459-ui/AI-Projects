@@ -21,36 +21,21 @@ check_memory() {
 }
 
 # Function to check disk utilization percentage of root filesystem (/)
-disk_usage=$(df / | awk 'NR==2{printf("%.2f"), $5}' | sed 's/%//')
+disk_usage=$(df / | awk '/\//{printf("%.2f"), $5}' | sed 's/%//')
 if (( $(echo "$disk_usage >= 60" | bc -l) )); then
     echo "Not Healthy"
 else
     echo "Healthy"
 fi
 
-# Main script logic
-cpu_status=$(check_cpu)
-mem_status=$(check_memory)
-disk_status=$(check_disk)
-
-if [ "$cpu_status" == "Healthy" ] && [ "$mem_status" == "Healthy" ] && [ "$disk_status" == "Healthy" ]; then
-    echo "Healthy"
-else
-    echo "Not Healthy"
+# Check if explain mode is used
+if [ "$1" == "explain" ]; then
+    echo "CPU Utilization: $cpu_usage%"
+    echo "Memory Utilization: $mem_usage%"
+    echo "Disk Utilization of /: $disk_usage%"
+    if (( $(echo "$cpu_usage >= 60" | bc -l) )) || (( $(echo "$mem_usage >= 60" | bc -l) )) || (( $(echo "$disk_usage >= 60" | bc -l) )); then
+        echo "Not Healthy"
+    else
+        echo "Healthy"
+    fi
 fi
-
-# Explain mode
-case $1 in
-    explain)
-        echo "CPU Utilization: $(check_cpu) %"
-        echo "Memory Utilization: $(check_memory) %"
-        echo "Disk Utilization: $(check_disk) %"
-        if [ "$cpu_status" == "Healthy" ] && [ "$mem_status" == "Healthy" ] && [ "$disk_status" == "Healthy" ]; then
-            echo "The VM is Healthy because all resource usages are below 60%."
-        else
-            echo "The VM is Not Healthy because at least one resource usage is 60% or above."
-        fi
-        ;;
-    *)
-        ;;
-esac
